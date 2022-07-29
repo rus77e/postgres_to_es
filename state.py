@@ -1,6 +1,9 @@
 import abc
 import json
+import threading
 from typing import Any, Optional
+
+lock = threading.Lock()
 
 
 class BaseStorage:
@@ -14,6 +17,9 @@ class BaseStorage:
 
 
 class JsonFileStorage(BaseStorage):
+    """
+    Storage of data as json in file.
+    """
     def __init__(self, file_path: Optional[str] = None):
         self.file_path = file_path
 
@@ -30,17 +36,22 @@ class JsonFileStorage(BaseStorage):
 
 
 class State:
+    """
+    Provide functionality to get/set key-value pairs from/to storage.
+    """
     def __init__(self, storage: BaseStorage):
         self.storage = storage
         self.state = self.storage.retrieve_state()
 
-    def set_state(self, key: str, value: Any) -> None:
+    def set(self, key: str, value: Any) -> None:
         if key:
-            self.state[key] = value
-            self.storage.save_state(self.state)
+            with lock:
+                self.state[key] = value
+                self.storage.save_state(self.state)
 
-    def get_state(self, key: str, default=None) -> Any:
+    def get(self, key: str, default=None) -> Any:
         if key:
-            return self.state.get(key, default)
+            with lock:
+                return self.state.get(key, default)
         else:
             return default

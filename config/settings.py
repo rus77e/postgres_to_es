@@ -17,3 +17,6 @@ DATABASES = {
         }
     }
 }
+
+ES_URL = os.environ.get('ES_URL', 'http://127.0.0.1:9200')
+ES_INDEX_NAME = 'movies'
